@@ -13,6 +13,7 @@ import (
 	"github.com/xruins/chronos/lib/logger"
 )
 
+// Worker is the implementation of Chronos worker.
 type Worker struct {
 	conf   *Config
 	jobs   []*Job
@@ -20,6 +21,8 @@ type Worker struct {
 	loc    *time.Location
 }
 
+// NewWorker returns an instance of `Worker`.
+// It returns error when given malformed config.
 func NewWorker(conf *Config, logger logger.Logger) (*Worker, error) {
 	jobs := make([]*Job, 0, len(conf.Tasks))
 	for name, t := range conf.Tasks {
@@ -79,6 +82,7 @@ const (
 	HealthCheckEndpoint = "/health"
 )
 
+// ServeHealthCheckServer starts to serve HealthCheck server.
 func (w *Worker) ServeHealthCheckServer() error {
 	http.HandleFunc(HealthCheckEndpoint, w.healthCheckHandler)
 
@@ -92,6 +96,7 @@ func (w *Worker) ServeHealthCheckServer() error {
 	return nil
 }
 
+// Run starts periodic execution of Jobs.
 func (w *Worker) Run(ctx context.Context) error {
 	stopCh := make(chan struct{}, 1)
 	if w.conf.HealthCheck != nil {
@@ -111,7 +116,6 @@ func (w *Worker) Run(ctx context.Context) error {
 	c.ErrorLog = log.Default()
 
 	for _, j := range w.jobs {
-		w.logger.Debugf("tasks: %s", *j)
 		c.AddFunc(
 			j.task.Schedule,
 			func() {
@@ -123,6 +127,10 @@ func (w *Worker) Run(ctx context.Context) error {
 
 	c.Start()
 	defer c.Stop()
+
+	for i, e := range c.Entries() {
+		w.logger.Infof("Task %s will be executed in %s at first", w.jobs[i].name, e.Next)
+	}
 
 	select {
 	case <-ctx.Done():

@@ -15,14 +15,20 @@ import (
 	"github.com/xruins/chronos/lib/logger"
 )
 
+// State is an emum to express the state of Chronos worker.
 type State int
 
 const (
+	// StateUnknown is the default value of `State`.
 	StateUnknown = iota
+	// StateHealthy is the value to represent Chronos worker is in healthy state.
 	StateHealthy
+	// StateUnhealthy is the value to represent Chronos worker is in unhealthy state.
 	StateUnhealthy
 )
 
+// Job represents a unit to execute a task periodically.
+// It runs command and have the information of the command to execute and past execution.
 type Job struct {
 	name       string
 	mu         sync.RWMutex
@@ -81,6 +87,7 @@ func (j *Job) generateEnvVariables(propagate bool) map[string]string {
 	return ret
 }
 
+// NewJob returns an instance of `Job`.
 func NewJob(name string, task *Task, logger logger.Logger) *Job {
 	return &Job{
 		name:   name,
@@ -91,12 +98,15 @@ func NewJob(name string, task *Task, logger logger.Logger) *Job {
 	}
 }
 
+// IsHealthy returns `true` for healthy Job.
+// Otherwise it returns `false`.
 func (j *Job) IsHealthy() bool {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 	return j.State == StateHealthy
 }
 
+// Execute executes the command defined in `task`.
 func (j *Job) Execute(ctx context.Context) error {
 	var cancel func()
 	if j.task.Timeout != 0 {
@@ -148,6 +158,7 @@ func (j *Job) Execute(ctx context.Context) error {
 	return nil
 }
 
+// ExecuteWithRetry invokes `Execute` with retry process.
 func ExecuteWithRetry(ctx context.Context, j *Job) {
 	retryLimit := j.task.RetryLimit
 
@@ -196,6 +207,7 @@ func ExecuteWithRetry(ctx context.Context, j *Job) {
 	return
 }
 
+// Execution represents an information of past command executions of `Job`.
 type Execution struct {
 	count        int
 	executedTime time.Time

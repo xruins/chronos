@@ -9,10 +9,12 @@ import (
 	"net/url"
 )
 
+// Client it a HTTP Client for HealthCheck.
 type Client struct {
 	httpClient *http.Client
 }
 
+// NewClient returns an instance of Client.
 func NewClient(httpClient *http.Client) *Client {
 	return &Client{
 		httpClient: httpClient,
@@ -26,6 +28,8 @@ func (c *Client) getClient() *http.Client {
 	return c.httpClient
 }
 
+// CheckHealth invokes HealthCheck API and return the status of Chronos worker.
+// It returns `true` if Chronos worker in healthy state.
 func (c *Client) CheckHealth(ctx context.Context, u *url.URL) (bool, error) {
 	req := &http.Request{
 		Method: http.MethodGet,
