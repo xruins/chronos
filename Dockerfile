@@ -2,7 +2,6 @@ FROM golang:1.18 as builder
 
 WORKDIR /app
 
-COPY go.* ./
 COPY . ./
 RUN go build -ldflags="-w -s" -o /app/chronos
 
