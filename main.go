@@ -91,7 +91,7 @@ var workerCmd = &cobra.Command{
 }
 
 var rootCmd = &cobra.Command{
-	Short: "chronos is implementation of the worker for periodic tasks",
+	Short: "chronos is an implementation of the worker for periodic tasks",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
