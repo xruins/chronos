@@ -11,9 +11,10 @@ import (
 const (
 	fixtureConfigJSON = `{
 	"log_level": "debug",
+        "time_zone": "Asia/Tokyo",
 	"healthcheck": {
 		"host": "0.0.0.0",
-		"port": 8080
+		"port": 30001
 	},
 	"tasks": {
 		"hello": {
@@ -23,6 +24,7 @@ const (
 				"hoge",
 				"fuga"
 			],
+                        "use_template": true,
 			"schedule": "0 0 0 0 0",
 			"env": {
 				"TZ": "Asia/Tokyo"
@@ -38,9 +40,10 @@ const (
 
 	fixtureConfigYAML = `
 log_level: debug
+time_zone: Asia/Tokyo
 healthcheck:
   host: 0.0.0.0
-  port: 8080
+  port: 30001
 tasks:
   hello:
     description: hello
@@ -48,6 +51,7 @@ tasks:
     args:
       - hoge
       - fuga
+    use_template: true
     schedule: 0 0 0 0 0
     timeout: 30
     retry_limit: 3
@@ -61,15 +65,17 @@ tasks:
 
 	fixtureConfigTOML = `
 log_level = "debug"
+time_zone = "Asia/Tokyo"
 [healthcheck]
 host = "0.0.0.0"
-port = 8080
+port = 30001
 
 [tasks.hello]
 description = "hello"
 command = "echo"
 args = [ "hoge", "fuga" ]
 schedule = "0 0 0 0 0"
+use_template = true
 timeout = 30
 retry_limit = 3
 retry_wait = 30
@@ -82,9 +88,10 @@ failure_count = 1
 
 var fixtureConfig = &chronos.Config{
 	LogLevel: "Debug",
+	TimeZone: "Asia/Tokyo",
 	HealthCheck: &chronos.HealthCheck{
 		Host: "0.0.0.0",
-		Port: 8080,
+		Port: 30001,
 	},
 	Tasks: map[string]*chronos.Task{
 		"hello": &chronos.Task{
@@ -94,6 +101,7 @@ var fixtureConfig = &chronos.Config{
 				"hoge",
 				"fuga",
 			},
+			UseTemplate:  true,
 			Schedule:     "0 0 0 0 0",
 			Timeout:      30,
 			RetryLimit:   3,

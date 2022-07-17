@@ -44,6 +44,8 @@ type Logger interface {
 func zapLogLevel(level string) (zap.AtomicLevel, error) {
 	var lvl zapcore.Level
 	switch level {
+	case "debug":
+		lvl = zap.DebugLevel
 	case "info":
 		lvl = zap.InfoLevel
 	case "warn":
@@ -89,4 +91,58 @@ func NewZapLogger(level string) (*zap.SugaredLogger, error) {
 		return nil, fmt.Errorf("failed to generate logger: %w", err)
 	}
 	return logger.Sugar(), nil
+}
+
+// NopLogger is the logger for testing.
+// it won't output anything on all log levels.
+type NopLogger struct{}
+
+// Printf does nothing
+func (n *NopLogger) Infof(_ string, _ ...interface{}) {
+	return
+}
+
+// Print does nothing
+func (n *NopLogger) Info(v ...interface{}) {
+	return
+}
+
+// Warn does nothing
+func (n *NopLogger) Warn(v ...interface{}) {
+	return
+}
+
+// Warnf does nothing
+func (n *NopLogger) Warnf(_ string, _ ...interface{}) {
+	return
+}
+
+// Error does nothing
+func (n *NopLogger) Error(v ...interface{}) {
+	return
+}
+
+// Errorf does nothing
+func (n *NopLogger) Errorf(_ string, _ ...interface{}) {
+	return
+}
+
+// Debug does nothing
+func (n *NopLogger) Debug(_ ...interface{}) {
+	return
+}
+
+// Debugf does nothing
+func (n *NopLogger) Debugf(_ string, _ ...interface{}) {
+	return
+}
+
+// Fatal does nothing
+func (n *NopLogger) Fatal(_ ...interface{}) {
+	return
+}
+
+// Fatalf does nothing
+func (n *NopLogger) Fatalf(_ string, _ ...interface{}) {
+	return
 }

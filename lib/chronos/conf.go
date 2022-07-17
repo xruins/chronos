@@ -36,7 +36,6 @@ func NewConfig(i io.Reader, filename string) (*Config, error) {
 	extension := filepath.Ext(filename)
 
 	b, err := ioutil.ReadAll(i)
-	fmt.Printf("filename: %s, read config: %s\n", filename, string(b))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
@@ -84,12 +83,14 @@ const (
 )
 
 type Task struct {
-	Description string            `json:"description" json:"description" toml:"description" yaml:"description"`
-	Command     string            `validate:"required" json:"command" toml:"command" yaml:"command"`
-	Args        []string          `json:"args" toml:"args" yaml:"args"`
-	Schedule    string            `validate:"required" json:"schedule" toml:"schedule" yaml:"schedule"`
-	Env         map[string]string `json:"env" toml:"env" yaml:"env"`
-	Timeout     int               `validate:"gte=0" json:"timeout" toml:"timeout" yaml:"timeout"`
+	Description  string            `json:"description" json:"description" toml:"description" yaml:"description"`
+	Command      string            `validate:"required" json:"command" toml:"command" yaml:"command"`
+	Args         []string          `json:"args" toml:"args" yaml:"args"`
+	Schedule     string            `validate:"required" json:"schedule" toml:"schedule" yaml:"schedule"`
+	UseTemplate  bool              `json:"use_template" toml:"use_template" yaml:"use_template"`
+	Env          map[string]string `json:"env" toml:"env" yaml:"env"`
+	PropagateEnv bool              `json:"propagate_env" toml:"propagate_env" yaml:"propagate_env"`
+	Timeout      int               `validate:"gte=0" json:"timeout" toml:"timeout" yaml:"timeout"`
 	// RetryLimit is the count of retry to be attempted. 0: infinite, -1:never retry
 	RetryLimit RetryLimit `validate:"gte=0" json:"retry_limit" toml:"retry_limit" yaml:"retry_limit"`
 	// RetryWait is the time to wait before retry in second. With retry

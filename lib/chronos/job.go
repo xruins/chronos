@@ -3,11 +3,13 @@ package chronos
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"math"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/xruins/chronos/lib/logger"
@@ -31,6 +33,54 @@ type Job struct {
 	logger     logger.Logger
 }
 
+func (j *Job) generateTemplateFuncMap(env map[string]string) map[string]interface{} {
+	return map[string]interface{}{
+		"env": func(key string) string {
+			value, ok := env[key]
+			if ok {
+				return value
+			}
+			return ""
+		},
+		"name": func() string {
+			return j.name
+		},
+		"time": func(t string) string {
+			return time.Now().Format(t)
+		},
+		"count": func() int {
+			var count int
+			for _, e := range j.execution {
+				if e.succeeded {
+					count++
+				}
+			}
+			return count + 1
+		},
+	}
+}
+
+func (j *Job) generateEnvVariables(propagate bool) map[string]string {
+	ret := make(map[string]string, len(j.task.Env))
+
+	for name, value := range j.task.Env {
+		ret[name] = value
+	}
+
+	if !propagate {
+		return ret
+	}
+
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		name := pair[0]
+		value := pair[1]
+		ret[name] = value
+	}
+
+	return ret
+}
+
 func NewJob(name string, task *Task, logger logger.Logger) *Job {
 	return &Job{
 		name:   name,
@@ -49,39 +99,62 @@ func (j *Job) IsHealthy() bool {
 
 func (j *Job) Execute(ctx context.Context) error {
 	var cancel func()
-	ctx, cancel = context.WithTimeout(ctx, time.Duration(j.task.Timeout)*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, j.task.Command, j.task.Args...)
-	env := os.Environ()
-	for envName, envValue := range j.task.Env {
-		env = append(env, envName+"="+envValue)
+	if j.task.Timeout != 0 {
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(j.task.Timeout)*time.Second)
+		defer cancel()
 	}
+
+	env := j.generateEnvVariables(j.task.PropagateEnv)
+	args := make([]string, len(j.task.Args))
+	copy(args, j.task.Args)
+	if j.task.UseTemplate {
+		tf := j.generateTemplateFuncMap(env)
+
+		for i, arg := range args {
+			var err error
+			tmpl := template.Must(template.New("argtemplate").Funcs(tf).Parse(arg))
+			if err != nil {
+				return fmt.Errorf("failed to create template. templateText: %s, err: %w", arg, err)
+			}
+
+			w := new(bytes.Buffer)
+			err = tmpl.Execute(w, nil)
+			if err != nil {
+				return fmt.Errorf("failed to apply template. templateText: %s, err: %w", arg, err)
+			}
+
+			j.logger.Debugf("transform args. before: %s, after:%s", args[i], w.String())
+			args[i] = w.String()
+		}
+	}
+
+	j.logger.Infof("Task %s started to execute command. command: %s %s", j.name, j.task.Command, strings.Join(j.task.Args, " "))
+	cmd := exec.CommandContext(ctx, j.task.Command, args...)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		j.logger.Warnf("Task %s failed to execute command: %s", err)
-		return err
-	}
+	err := cmd.Run()
 	if out := stdout.String(); len(out) != 0 {
 		j.logger.Infof("Task %s outputted to STDOUT: %s", j.name, out)
 	}
 	if out := stderr.String(); len(out) != 0 {
 		j.logger.Warnf("Task %s outputted to STDERR: %s", j.name, out)
 	}
+	if err != nil {
+		j.logger.Warnf("Task %s failed to execute command: %s", j.name, err)
+		return err
+	}
 	return nil
 }
 
 func ExecuteWithRetry(ctx context.Context, j *Job) {
-	j.logger.Infof("Task %s started to execute command. command: %s %s", j.name, j.task.Command, strings.Join(j.task.Args, " "))
 	retryLimit := j.task.RetryLimit
 
 	isRetryable := j.task.RetryLimit != RetryLimitNever
 	isInfiniteRetry := j.task.RetryLimit == RetryLimitInfinite
 
-	for i := 0; isInfiniteRetry || isRetryable && i < int(retryLimit); i++ {
+	for i := 0; ; i++ {
 		execution := &Execution{
 			count:        i,
 			executedTime: time.Now(),
@@ -94,7 +167,7 @@ func ExecuteWithRetry(ctx context.Context, j *Job) {
 			return
 		}
 
-		j.logger.Warnf("Task %s failed to execute command (will retry).", j.name)
+		j.logger.Warnf("Task %s failed to execute command (failed %d of %d, will retry). err: %s", j.name, i, int(retryLimit), err)
 		execution.err = err
 		j.execution = append(j.execution, execution)
 
@@ -108,7 +181,12 @@ func ExecuteWithRetry(ctx context.Context, j *Job) {
 			j.logger.Errorf("malformed retry_type for Task %s. retry_type: %s", j.name, j.task.RetryType)
 			break
 		}
+		if !isInfiniteRetry && !isRetryable || i >= int(retryLimit) {
+			break
+		}
+
 		time.Sleep(retryWait)
+		i++
 	}
 
 	j.logger.Errorf("Task %s exceeded to retry limit.", j.name)
