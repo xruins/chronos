@@ -72,7 +72,14 @@ var workerCmd = &cobra.Command{
 			log.Fatalf("failed to parse config file: %s", err)
 		}
 
-		l, err := logger.NewZapLogger(string(conf.LogLevel))
+		loc := time.Local
+		if conf.TimeZone != "" {
+			loc, err = time.LoadLocation(conf.TimeZone)
+			if err != nil {
+				log.Fatalf("failed to parse TimeZone: %s", err)
+			}
+		}
+		l, err := logger.NewZapLogger(string(conf.LogLevel), loc)
 		defer l.Sync()
 		if err != nil {
 			log.Fatalf("failed to generate logger: %s", err)

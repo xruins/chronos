@@ -3,6 +3,7 @@ package logger
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -61,7 +62,7 @@ func zapLogLevel(level string) (zap.AtomicLevel, error) {
 	return zap.NewAtomicLevelAt(lvl), nil
 }
 
-func NewZapLogger(level string) (*zap.SugaredLogger, error) {
+func NewZapLogger(level string, loc *time.Location) (*zap.SugaredLogger, error) {
 	logLevel, err := zapLogLevel(string(level))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get loglevel: %s", err)

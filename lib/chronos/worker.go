@@ -101,10 +101,10 @@ func (w *Worker) Run(ctx context.Context) error {
 	stopCh := make(chan struct{}, 1)
 	if w.conf.HealthCheck != nil {
 		go func() {
-			w.logger.Infof("healthcheck server started on %s:%d", w.conf.HealthCheck.Host, w.conf.HealthCheck.Port)
+			w.logger.Infof("Healthcheck server started on %s:%d", w.conf.HealthCheck.Host, w.conf.HealthCheck.Port)
 			err := w.ServeHealthCheckServer()
 			if !errors.Is(context.Canceled, err) {
-				w.logger.Fatalf("healthcheck server stopped. err: %s", err)
+				w.logger.Fatalf("Healthcheck server stopped. err: %s", err)
 			}
 			stopCh <- struct{}{}
 		}()
@@ -116,20 +116,23 @@ func (w *Worker) Run(ctx context.Context) error {
 	c.ErrorLog = log.Default()
 
 	for _, j := range w.jobs {
-		c.AddFunc(
-			j.task.Schedule,
-			func() {
-				ExecuteWithRetry(ctx, j)
-			},
-		)
-		w.logger.Infof("Task %s has been registered. schedule %s", j.name, j.task.Schedule)
+		err := c.AddJob(j.task.Schedule, j)
+		if err != nil {
+			return fmt.Errorf("failed to add Task `%s`. err: %s", j.name, err)
+		}
+		w.logger.Infof("Task `%s` has been registered. schedule: %s", j.name, j.task.Schedule)
 	}
 
 	c.Start()
 	defer c.Stop()
 
-	for i, e := range c.Entries() {
-		w.logger.Infof("Task %s will be executed in %s at first", w.jobs[i].name, e.Next)
+	for _, e := range c.Entries() {
+		job, ok := e.Job.(*Job)
+		if !ok {
+			return fmt.Errorf("unexpected type of Job inside Entry. got: %T", e.Job)
+		}
+
+		w.logger.Infof("Task `%s` will be executed in %s at first", job.name, e.Next)
 	}
 
 	select {

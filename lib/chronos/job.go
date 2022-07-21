@@ -138,7 +138,7 @@ func (j *Job) Execute(ctx context.Context) error {
 		}
 	}
 
-	j.logger.Infof("Task %s started to execute command. command: %s %s", j.name, j.task.Command, strings.Join(j.task.Args, " "))
+	j.logger.Infof("Task `%s` started to execute command. command: %s %s", j.name, j.task.Command, strings.Join(j.task.Args, " "))
 	cmd := exec.CommandContext(ctx, j.task.Command, args...)
 
 	var stdout, stderr bytes.Buffer
@@ -146,20 +146,24 @@ func (j *Job) Execute(ctx context.Context) error {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if out := stdout.String(); len(out) != 0 {
-		j.logger.Infof("Task %s outputted to STDOUT: %s", j.name, out)
+		trimed := strings.TrimSuffix(out, "\n")
+		j.logger.Infof("Task `%s` outputted to STDOUT: %s", j.name, trimed)
 	}
 	if out := stderr.String(); len(out) != 0 {
-		j.logger.Warnf("Task %s outputted to STDERR: %s", j.name, out)
+		trimed := strings.TrimSuffix(out, "\n")
+		j.logger.Warnf("Task `%s` outputted to STDERR: %s", j.name, trimed)
 	}
 	if err != nil {
-		j.logger.Warnf("Task %s failed to execute command: %s", j.name, err)
+		j.logger.Warnf("Task `%s` failed to execute command: %s", j.name, err)
 		return err
 	}
 	return nil
 }
 
-// ExecuteWithRetry invokes `Execute` with retry process.
-func ExecuteWithRetry(ctx context.Context, j *Job) {
+// Run invokes `Execute` with retry process.
+// `Run` is named to satisfy cron.Job interface.
+func (j *Job) Run() {
+	ctx := context.Background()
 	retryLimit := j.task.RetryLimit
 
 	isRetryable := j.task.RetryLimit != RetryLimitNever
@@ -173,12 +177,12 @@ func ExecuteWithRetry(ctx context.Context, j *Job) {
 		err := j.Execute(ctx)
 		if err == nil {
 			execution.succeeded = true
-			j.logger.Infof("Task %s finished to execute command successfully.", j.name)
+			j.logger.Infof("Task `%s` finished to execute command successfully.", j.name)
 			j.execution = append(j.execution, execution)
 			return
 		}
 
-		j.logger.Warnf("Task %s failed to execute command (failed %d of %d, will retry). err: %s", j.name, i, int(retryLimit), err)
+		j.logger.Warnf("Task `%s` failed to execute command (failed %d of %d, will retry). err: %s", j.name, i, int(retryLimit), err)
 		execution.err = err
 		j.execution = append(j.execution, execution)
 
@@ -189,7 +193,7 @@ func ExecuteWithRetry(ctx context.Context, j *Job) {
 		case RetryTypeExponential:
 			retryWait = time.Duration(int(math.Pow(2, float64(i)))*j.task.RetryWait) * time.Second
 		default:
-			j.logger.Errorf("malformed retry_type for Task %s. retry_type: %s", j.name, j.task.RetryType)
+			j.logger.Errorf("malformed retry_type for Task `%s`. retry_type: %s", j.name, j.task.RetryType)
 			break
 		}
 		if !isInfiniteRetry && !isRetryable || i >= int(retryLimit) {
@@ -200,7 +204,7 @@ func ExecuteWithRetry(ctx context.Context, j *Job) {
 		i++
 	}
 
-	j.logger.Errorf("Task %s exceeded to retry limit.", j.name)
+	j.logger.Errorf("Task `%s` exceeded to retry limit.", j.name)
 	j.mu.Lock()
 	j.State = StateUnhealthy
 	j.mu.Unlock()
