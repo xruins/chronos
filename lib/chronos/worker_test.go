@@ -87,7 +87,7 @@ func TestWorkerRun(t *testing.T) {
 		},
 	}
 
-	l, err := logger.NewZapLogger("debug")
+	l, err := logger.NewZapLogger("debug", time.Local)
 	if err != nil {
 		t.Fatalf("failed to create logger: %s", err)
 	}
