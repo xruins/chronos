@@ -144,6 +144,6 @@ type Task struct {
 	// (fixed: retry with fixed wait time, exponential: retry with exponential backoff)
 	RetryType RetryType `validate:"oneof=fixed exponential" json:"retry_type" toml:"retry_type" yaml:"retry_type"`
 	// FailureCount is the number of failure which makes HealthCheck failed.
-	// If the command failed over than `FailureCount`, HealthCheck for the task shows failling status.
+	// If the command failed `FailureCount` times or more, HealthCheck for the task shows failling status.
 	FailureCount int `validate:"gte=0" json:"failure_count" toml:"failure_count" yaml:"failure_count"`
 }

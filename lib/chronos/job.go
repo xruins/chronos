@@ -186,15 +186,9 @@ func (j *Job) Run() {
 		execution.err = err
 		j.execution = append(j.execution, execution)
 
-		var retryWait time.Duration
-		switch j.task.RetryType {
-		case RetryTypeFixed:
-			retryWait = time.Duration(j.task.RetryWait) * time.Second
-		case RetryTypeExponential:
+		retryWait := time.Duration(j.task.RetryWait) * time.Second
+		if j.task.RetryType == RetryTypeExponential {
 			retryWait = time.Duration(int(math.Pow(2, float64(i)))*j.task.RetryWait) * time.Second
-		default:
-			j.logger.Errorf("malformed retry_type for Task `%s`. retry_type: %s", j.name, j.task.RetryType)
-			break
 		}
 		if !isInfiniteRetry && !isRetryable || i >= int(retryLimit) {
 			break
