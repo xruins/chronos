@@ -179,6 +179,11 @@ func (j *Job) Run() {
 			execution.succeeded = true
 			j.logger.Infof("Task `%s` finished to execute command successfully.", j.name)
 			j.execution = append(j.execution, execution)
+
+			// set healthy state when succeeded to execute the task
+			j.mu.Lock()
+			j.State = StateHealthy
+			j.mu.Unlock()
 			return
 		}
 
@@ -199,6 +204,7 @@ func (j *Job) Run() {
 	}
 
 	j.logger.Errorf("Task `%s` exceeded to retry limit.", j.name)
+	// set unhealthy staste when failed to execute task
 	j.mu.Lock()
 	j.State = StateUnhealthy
 	j.mu.Unlock()
