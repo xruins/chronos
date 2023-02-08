@@ -93,6 +93,7 @@ var workerCmd = &cobra.Command{
 		if err != nil {
 			l.Fatalf("failed to run worker: %s", err)
 		}
+		l.Info("Worker finished")
 		os.Exit(0)
 	},
 }

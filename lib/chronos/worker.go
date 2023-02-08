@@ -142,4 +142,5 @@ func (w *Worker) Run(ctx context.Context) error {
 		return errors.New("cron scheduler stopped")
 	}
 
+	return nil
 }
