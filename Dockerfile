@@ -1,6 +1,7 @@
 FROM golang:1.20 as builder
 
 WORKDIR /app
+LABEL org.opencontainers.image.source="https://github.com/xruins/chronos"
 
 COPY . ./
 RUN go build -ldflags="-w -s" -o /app/chronos
