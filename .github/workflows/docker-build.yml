@@ -11,7 +11,6 @@ on:
 jobs:
   docker-build:
     runs-on: ubuntu-latest
-    needs: build-and-test
     env:
       IMAGE_NAME: chronos
     steps:
@@ -31,3 +30,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+
