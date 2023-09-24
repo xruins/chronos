@@ -144,7 +144,7 @@ func (j *Job) Execute(ctx context.Context) error {
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	err := cmd.Run(ctx)
+	err := cmd.Run()
 	if out := stdout.String(); len(out) != 0 {
 		trimed := strings.TrimSuffix(out, "\n")
 		j.logger.Infof("Task `%s` outputted to STDOUT: %s", j.name, trimed)
@@ -162,7 +162,8 @@ func (j *Job) Execute(ctx context.Context) error {
 
 // Run invokes `Execute` with retry process.
 // `Run` is named to satisfy cron.Job interface.
-func (j *Job) Run(ctx context.Context) {
+func (j *Job) Run() {
+	ctx := context.Background()
 	retryLimit := j.task.RetryLimit
 
 	isRetryable := j.task.RetryLimit != RetryLimitNever
