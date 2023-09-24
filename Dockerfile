@@ -18,8 +18,8 @@ RUN apt-get update && \
     tee /etc/apt/sources.list.d/docker.list > /dev/null
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    docker-ce-cli && \
-    docker-compose && \
+    docker-ce-cli \
+    docker-compose \
     docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/*
 
