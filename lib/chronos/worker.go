@@ -51,7 +51,7 @@ type healthCheckResult struct {
 	FailedJobs []string `json:"failed_jobs"`
 }
 
-func (w *Worker) healthCheckHandler(rw http.ResponseWriter, r *http.Request) {
+func (w *Worker) healthCheckHandler(rw http.ResponseWriter, _ *http.Request) {
 	var failedJobNames []string
 	for _, j := range w.jobs {
 		if !j.IsHealthy() {
@@ -69,16 +69,17 @@ func (w *Worker) healthCheckHandler(rw http.ResponseWriter, r *http.Request) {
 	b, err := json.Marshal(res)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
-		rw.Write([]byte(fmt.Sprintf("failed to marshal JSON. err: %s", err)))
+		_, _ = rw.Write([]byte(fmt.Sprintf("failed to marshal JSON. err: %s", err)))
 		return
 	}
 
 	rw.WriteHeader(http.StatusOK)
-	rw.Write(b)
+	_, _ = rw.Write(b)
 	return
 }
 
 const (
+	// HealthCheckEndpoint is an endpoint of health check API.
 	HealthCheckEndpoint = "/health"
 )
 
@@ -141,6 +142,4 @@ func (w *Worker) Run(ctx context.Context) error {
 	case <-stopCh:
 		return errors.New("cron scheduler stopped")
 	}
-
-	return nil
 }

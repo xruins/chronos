@@ -21,7 +21,7 @@ func TestWorkerHealthCheck(t *testing.T) {
 		t.Fatalf("failed to creare worker: %s", err)
 	}
 	go func(ctx context.Context) {
-		w.ServeHealthCheckServer()
+		_ = w.ServeHealthCheckServer()
 	}(ctx)
 	time.Sleep(100 * time.Millisecond)
 
@@ -34,7 +34,7 @@ func TestWorkerHealthCheck(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to request for healthcheck end-point: %s", err)
 	}
-	res.Body.Close()
+	_ = res.Body.Close()
 
 	got := res.StatusCode
 	want := http.StatusOK
@@ -70,14 +70,14 @@ func TestWorkerRun(t *testing.T) {
 
 	conf := &chronos.Config{
 		Tasks: map[string]*chronos.Task{
-			"test1": &chronos.Task{
+			"test1": {
 				Command:    "curl",
 				Args:       []string{"-fsSL", "http://localhost:30000/test1"},
 				Schedule:   "@every 1s",
 				RetryLimit: -1, // infinite
 				RetryType:  "fixed",
 			},
-			"test2": &chronos.Task{
+			"test2": {
 				Command:    "curl",
 				Args:       []string{"-fsSL", "http://localhost:30000/test2"},
 				Schedule:   "@every 1s",

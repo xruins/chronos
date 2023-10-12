@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 )
 
-// Client it a HTTP Client for HealthCheck.
+// Client it an HTTP Client for HealthCheck.
 type Client struct {
 	httpClient *http.Client
 }
@@ -35,7 +35,7 @@ func (c *Client) CheckHealth(ctx context.Context, u *url.URL) (bool, error) {
 		Method: http.MethodGet,
 		URL:    u,
 		Header: map[string][]string{
-			"Accept": []string{"application/json"},
+			"Accept": {"application/json"},
 		},
 	}
 
@@ -44,9 +44,11 @@ func (c *Client) CheckHealth(ctx context.Context, u *url.URL) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to exec a request for healthCheckAPI: %w", err)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return false, fmt.Errorf("failed to read the body of response: %w", err)
 	}

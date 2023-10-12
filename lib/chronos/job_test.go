@@ -13,17 +13,17 @@ import (
 func TestGenerateTemplateFuncMap(t *testing.T) {
 	j := &Job{
 		execution: []*Execution{
-			&Execution{
+			{
 				count:        1,
 				executedTime: time.Now().Add(-3 * time.Hour),
 				succeeded:    true,
 			},
-			&Execution{
+			{
 				count:        2,
 				executedTime: time.Now().Add(-2 * time.Hour),
 				succeeded:    false,
 			},
-			&Execution{
+			{
 				count:        3,
 				executedTime: time.Now().Add(-1 * time.Hour),
 				succeeded:    true,
@@ -64,7 +64,7 @@ fuga
 }
 
 func applyTemplate(t *testing.T, tf map[string]interface{}, example string) string {
-	tmpl := template.Must(template.New("argtemplate").Funcs(tf).Parse(example))
+	tmpl := template.Must(template.New("template").Funcs(tf).Parse(example))
 	w := new(bytes.Buffer)
 	err := tmpl.Execute(w, nil)
 	if err != nil {

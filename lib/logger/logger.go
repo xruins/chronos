@@ -11,13 +11,13 @@ import (
 
 // Logger is the interface for logging messages.
 type Logger interface {
-	// Printf writes a formated message to the log.
+	// Infof writes a formatted message to the log.
 	Infof(format string, v ...interface{})
 
-	// Print writes a message to the log.
+	// Info writes a message to the log.
 	Info(v ...interface{})
 
-	// wrn writes a warning message to the log and aborts.
+	// Warn writes a warning message to the log and aborts.
 	Warn(v ...interface{})
 
 	// Warnf writes a warning message to the log.
@@ -38,7 +38,7 @@ type Logger interface {
 	// Fatal writes a message to the log and aborts.
 	Fatal(v ...interface{})
 
-	// Fatalf writes a formated message to the log and aborts.
+	// Fatalf writes a formatted message to the log and aborts.
 	Fatalf(format string, v ...interface{})
 }
 
@@ -63,7 +63,7 @@ func zapLogLevel(level string) (zap.AtomicLevel, error) {
 }
 
 func NewZapLogger(level string, loc *time.Location) (*zap.SugaredLogger, error) {
-	logLevel, err := zapLogLevel(string(level))
+	logLevel, err := zapLogLevel(level)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get loglevel: %s", err)
 	}
@@ -98,18 +98,18 @@ func NewZapLogger(level string, loc *time.Location) (*zap.SugaredLogger, error) 
 // it won't output anything on all log levels.
 type NopLogger struct{}
 
-// Printf does nothing
+// Infof does nothing
 func (n *NopLogger) Infof(_ string, _ ...interface{}) {
 	return
 }
 
-// Print does nothing
-func (n *NopLogger) Info(v ...interface{}) {
+// Info does nothing
+func (n *NopLogger) Info(_ ...interface{}) {
 	return
 }
 
 // Warn does nothing
-func (n *NopLogger) Warn(v ...interface{}) {
+func (n *NopLogger) Warn(_ ...interface{}) {
 	return
 }
 
@@ -119,7 +119,7 @@ func (n *NopLogger) Warnf(_ string, _ ...interface{}) {
 }
 
 // Error does nothing
-func (n *NopLogger) Error(v ...interface{}) {
+func (n *NopLogger) Error(_ ...interface{}) {
 	return
 }
 

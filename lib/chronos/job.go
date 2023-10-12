@@ -15,7 +15,7 @@ import (
 	"github.com/xruins/chronos/lib/logger"
 )
 
-// State is an emum to express the state of Chronos worker.
+// State is an enum to express the state of Chronos worker.
 type State int
 
 const (
@@ -99,7 +99,7 @@ func NewJob(name string, task *Task, logger logger.Logger) *Job {
 }
 
 // IsHealthy returns `true` for healthy Job.
-// Otherwise it returns `false`.
+// Otherwise, it returns `false`.
 func (j *Job) IsHealthy() bool {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
@@ -122,7 +122,7 @@ func (j *Job) Execute(ctx context.Context) error {
 
 		for i, arg := range args {
 			var err error
-			tmpl := template.Must(template.New("argtemplate").Funcs(tf).Parse(arg))
+			tmpl := template.Must(template.New("template").Funcs(tf).Parse(arg))
 			if err != nil {
 				return fmt.Errorf("failed to create template. templateText: %s, err: %w", arg, err)
 			}
@@ -146,12 +146,12 @@ func (j *Job) Execute(ctx context.Context) error {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if out := stdout.String(); len(out) != 0 {
-		trimed := strings.TrimSuffix(out, "\n")
-		j.logger.Infof("Task `%s` outputted to STDOUT: %s", j.name, trimed)
+		trimmed := strings.TrimSuffix(out, "\n")
+		j.logger.Infof("Task `%s` outputted to STDOUT: %s", j.name, trimmed)
 	}
 	if out := stderr.String(); len(out) != 0 {
-		trimed := strings.TrimSuffix(out, "\n")
-		j.logger.Warnf("Task `%s` outputted to STDERR: %s", j.name, trimed)
+		trimmed := strings.TrimSuffix(out, "\n")
+		j.logger.Warnf("Task `%s` outputted to STDERR: %s", j.name, trimmed)
 	}
 	if err != nil {
 		j.logger.Warnf("Task `%s` failed to execute command: %s", j.name, err)
@@ -204,7 +204,7 @@ func (j *Job) Run() {
 	}
 
 	j.logger.Errorf("Task `%s` exceeded to retry limit.", j.name)
-	// set unhealthy staste when failed to execute task
+	// set unhealthy state when failed to execute task
 	j.mu.Lock()
 	j.State = StateUnhealthy
 	j.mu.Unlock()

@@ -94,7 +94,7 @@ var fixtureConfig = &chronos.Config{
 		Port: 30001,
 	},
 	Tasks: map[string]*chronos.Task{
-		"hello": &chronos.Task{
+		"hello": {
 			Description: "hello",
 			Command:     "echo",
 			Args: []string{

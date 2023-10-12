@@ -5,12 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
-	validator "github.com/go-playground/validator/v10"
-	yaml "gopkg.in/yaml.v3"
+	"github.com/go-playground/validator/v10"
+	"gopkg.in/yaml.v3"
 )
 
 // Level is the log level for the logger.
@@ -52,7 +51,7 @@ func NewConfig(i io.Reader, filename string) (*Config, error) {
 	conf := &Config{}
 	extension := filepath.Ext(filename)
 
-	b, err := ioutil.ReadAll(i)
+	b, err := io.ReadAll(i)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
@@ -65,7 +64,7 @@ func NewConfig(i io.Reader, filename string) (*Config, error) {
 	case ".toml":
 		err = toml.Unmarshal(b, conf)
 	default:
-		return nil, errors.New("the extension of config file must be one of yaml, yml, json and toml.")
+		return nil, errors.New("the extension of config file must be one of yaml, yml, json and toml")
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
@@ -98,7 +97,7 @@ const (
 	RetryTypeExponential RetryType = "exponential"
 )
 
-// RetryLimit is the number to limit how many time to attempt retry.
+// RetryLimit is the number to limit how many times to attempt retry.
 type RetryLimit int
 
 const (
@@ -112,11 +111,11 @@ const (
 type Task struct {
 	// Description is a description of task.
 	Description string `json:"description" json:"description" toml:"description" yaml:"description"`
-	// Command is the executeble name to exec.
+	// Command is the executable name to exec.
 	Command string `validate:"required" json:"command" toml:"command" yaml:"command"`
 	// Args are the argument given for `Command`.
 	Args []string `json:"args" toml:"args" yaml:"args"`
-	// Schedule is the specification of the inverval of task execution.
+	// Schedule is the specification of the interval of task execution.
 	// [examples]
 	// `0 0 * * * *` (Every hour on the half hour) (Seconds, Minutes, Hours, Day of month, Month, Day of week)
 	// `@hourly` (Every hour)
@@ -124,7 +123,7 @@ type Task struct {
 	Schedule string `validate:"required" json:"schedule" toml:"schedule" yaml:"schedule"`
 	// UseTemplate is the option to enable template for `Args`.
 	// If true, the following templates are available on `Args`.
-	// `{{env "env_name}}`: replaced with ENV["env_name"].
+	// `{{env "env_name"}}`: replaced with ENV["env_name"].
 	// `{{time "2006-01-02T15:04:05Z07:00"}}: replaced with the current time formed as `2020-01-01T00:00:00Z07:00`.
 	// see https://pkg.go.dev/time#pkg-constants for time format.
 	// `{{count}}`: replaced with the times of successful executions.
@@ -144,6 +143,6 @@ type Task struct {
 	// (fixed: retry with fixed wait time, exponential: retry with exponential backoff)
 	RetryType RetryType `validate:"oneof=fixed exponential" json:"retry_type" toml:"retry_type" yaml:"retry_type"`
 	// FailureCount is the number of failure which makes HealthCheck failed.
-	// If the command failed `FailureCount` times or more, HealthCheck for the task shows failling status.
+	// If the command failed `FailureCount` times or more, HealthCheck for the task shows failing status.
 	FailureCount int `validate:"gte=0" json:"failure_count" toml:"failure_count" yaml:"failure_count"`
 }
