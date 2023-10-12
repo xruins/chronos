@@ -203,6 +203,9 @@ func (j *Job) Run() {
 		i++
 	}
 
+	if j.task.Fallthrough {
+		return
+	}
 	j.logger.Errorf("Task `%s` exceeded to retry limit.", j.name)
 	// set unhealthy state when failed to execute task
 	j.mu.Lock()

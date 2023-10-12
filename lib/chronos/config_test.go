@@ -29,6 +29,7 @@ const (
 			"env": {
 				"TZ": "Asia/Tokyo"
 			},
+			"fallthrough": true,
 			"timeout": 30,
 			"retry_limit": 3,
 			"retry_wait": 30,
@@ -54,6 +55,7 @@ tasks:
     use_template: true
     schedule: 0 0 0 0 0
     timeout: 30
+    fallthrough: true
     retry_limit: 3
     retry_wait: 30
     retry_type: fixed
@@ -77,6 +79,7 @@ args = [ "hoge", "fuga" ]
 schedule = "0 0 0 0 0"
 use_template = true
 timeout = 30
+fallthrough = true
 retry_limit = 3
 retry_wait = 30
 retry_type = "fixed"
@@ -107,6 +110,7 @@ var fixtureConfig = &chronos.Config{
 			RetryLimit:   3,
 			RetryWait:    30,
 			RetryType:    chronos.RetryTypeFixed,
+			Fallthrough:  true,
 			FailureCount: 1,
 			Env: map[string]string{
 				"TZ": "Asia/Tokyo",

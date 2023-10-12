@@ -142,6 +142,9 @@ type Task struct {
 	// RetryType is the kind of retry. it must be one of `fixed` or `exponential`.
 	// (fixed: retry with fixed wait time, exponential: retry with exponential backoff)
 	RetryType RetryType `validate:"oneof=fixed exponential" json:"retry_type" toml:"retry_type" yaml:"retry_type"`
+	// Fallthrough is the flag to ignore the failure of command entirely.
+	// `FailureCount` will be ignored with this enabled this option.
+	Fallthrough bool `json:"fallthrough" toml:"fallthrough" toml:"fallthrough" yaml:"fallthrough"`
 	// FailureCount is the number of failure which makes HealthCheck failed.
 	// If the command failed `FailureCount` times or more, HealthCheck for the task shows failing status.
 	FailureCount int `validate:"gte=0" json:"failure_count" toml:"failure_count" yaml:"failure_count"`
