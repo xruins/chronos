@@ -3,7 +3,7 @@ module github.com/xruins/chronos
 go 1.18
 
 require (
-	github.com/BurntSushi/toml v1.4.0
+	github.com/BurntSushi/toml v1.5.0
 	github.com/go-playground/validator/v10 v10.24.0
 	github.com/google/go-cmp v0.6.0
 	github.com/robfig/cron v1.2.0
