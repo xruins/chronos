@@ -2,7 +2,7 @@ module github.com/xruins/chronos
 
 go 1.21
 
-toolchain go1.24.4
+toolchain go1.24.6
 
 require (
 	github.com/BurntSushi/toml v1.5.0
